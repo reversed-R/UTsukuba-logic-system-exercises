@@ -39,7 +39,7 @@ always@ (posedge clk) begin
   end
   
 
-  if (pulse = 1) begin
+  if (pulse == 1) begin
     en <= ~en;
   end
 
