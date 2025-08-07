@@ -1,4 +1,4 @@
-`include "parameters_task43.v" 
+`include "parameters.v" 
 
 module stack_ctrl (
     input clk,
@@ -21,7 +21,7 @@ wire push_w,pop_w;
 assign push_w = _push;
 assign pop_w = _pop;
 
-wire pushed, poped;
+reg pushed, poped;
 assign _pushed = pushed;
 assign _poped = poped;
 
