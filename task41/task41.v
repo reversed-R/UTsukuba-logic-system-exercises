@@ -1,5 +1,5 @@
+`timescale 1ns / 1ps
 
-//4進カウンタ本体
 module task41(
   input clk,
   input btn0,
@@ -29,7 +29,7 @@ end
 always@(posedge clk)begin
     //stateの切り替え
     if (pulse_btn1) begin
-        state <= S_ONE;
+        state <= S_ZERO;
     end else begin
         if(state == S_ZERO && pulse_btn0 )begin
             state <= S_ONE;
