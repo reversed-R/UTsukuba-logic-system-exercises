@@ -16,11 +16,12 @@ module task43_5_2 (
 
 wire [1:0] pulse_btn;
 wire pushed, poped;
-wire [3:0] din;
+reg [3:0] din;
 wire [7:0] dout;
 
 reg [7:0] opr[0:1]; // 幅8ビットのレジスタの配列
 reg [7:0] result;
+reg [7:0] display_result;
 
 // ステート
 localparam WAIT_PUSH = 0;
@@ -58,7 +59,7 @@ stack_ctrl s0(
 
 seven_seg seg0(
     .din(seg_in),
-    .sel_in(sel_in)
+    .sel_in(sel_in),
     .seg(seg),
     .sel_out(sel_out)
 );
@@ -66,66 +67,43 @@ seven_seg seg0(
 
 initial begin
     state <= WAIT_PUSH;
-    pushed <= 0;
-    poped <= 0;
-
     sel_in <= 0;
-    seg_in <= 4'b0000;
+    seg_in <= 4'h0;
+    display_result <= 8'h00;
 end
 
 
 always@(posedge clk)begin
     if (pushed) begin
-        din[0] <= sw[0];
-        din[1] <= sw[1];
-        din[2] <= sw[2];
-        din[3] <= sw[3];
-        din[4] <= 1'b0;
-        din[5] <= 1'b0;
-        din[6] <= 1'b0;
-        din[7] <= 1'b0;
+      din <= {4'b0000, sw[3:0]};
     end
     
     if (poped && state == WAIT_PUSH) begin
         opr[0] <= dout; //レジスタ配列oprの「第0要素」にswを代入。紛らわしいが、「oprの0ビット目」ではない。
-        opr[1] <= opr[0]; //oprの第1要素にoprの第0要素を代入
         state <= WAIT_SECOND_POP;
-        
-        //
-        result <= opr[0];
     end else if (poped && state == WAIT_SECOND_POP) begin
-        opr[0] <= dout;
-        opr[1] <= opr[0];
+        opr[1] <= dout;
         state <= WAIT_ADD;
-        
-        //
-        result <= opr[0];
     end else if(state == WAIT_ADD)begin
         result <= opr[0] + opr[1];
         state <= WAIT_PUSH_RESULT;
     end else if(state == WAIT_PUSH_RESULT)begin
         din <= result;
+        display_result <= result;
         state <= WAIT_PUSH;
     end
 
 
     if (seg_count == SEG_COUNT_MAX) begin
-        sel_in <= ~sel_in;
-
-        if (sel_in) begin
+        if (~sel_in) begin
             // 下位4bit
-            seg_in[0] <= result[0];
-            seg_in[1] <= result[1];
-            seg_in[2] <= result[2];
-            seg_in[3] <= result[3];
+            seg_in <= display_result[3:0];
         end else begin
             // 上位4bit
-            seg_in[4] <= result[4];
-            seg_in[5] <= result[5];
-            seg_in[6] <= result[6];
-            seg_in[7] <= result[7];
+            seg_in <= display_result[7:4];
         end
 
+        sel_in <= ~sel_in;
         seg_count <= 0;
     end else begin
         seg_count <= seg_count + 1;
